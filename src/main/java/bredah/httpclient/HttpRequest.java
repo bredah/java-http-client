@@ -30,6 +30,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.message.BasicNameValuePair;
 
 public class HttpRequest {
@@ -55,7 +56,8 @@ public class HttpRequest {
 		// Instance a new cookie manager
 		cookieStore = new BasicCookieStore();
 		// Create a new client with proxy authentication
-		httpClient = HttpClientBuilder.create().setDefaultCookieStore(cookieStore).build();
+		httpClient = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy())
+				.setDefaultCookieStore(cookieStore).build();
 	}
 
 	/**
@@ -65,7 +67,7 @@ public class HttpRequest {
 	 * @throws ClientProtocolException
 	 * @throws URISyntaxException
 	 */
-	public void execute() throws ClientProtocolException, IOException, URISyntaxException {
+	public void execute() throws URISyntaxException {
 		URI uri;
 		// Check if exist parameters
 		if (parameters == null) {
@@ -97,7 +99,12 @@ public class HttpRequest {
 			httpRequest = new HttpTrace(uri);
 			break;
 		}
-		httpResponse = httpClient.execute((HttpUriRequest) httpRequest);
+		try {
+			httpResponse = httpClient.execute((HttpUriRequest) httpRequest);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	/**
@@ -139,8 +146,8 @@ public class HttpRequest {
 		CredentialsProvider credsProvider = new BasicCredentialsProvider();
 		credsProvider.setCredentials(authScope, credentials);
 		// Create a new client with proxy authentication
-		httpClient = HttpClientBuilder.create().setProxy(proxy).setDefaultCredentialsProvider(credsProvider)
-				.setDefaultCookieStore(cookieStore).build();
+		httpClient = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).setProxy(proxy)
+				.setDefaultCredentialsProvider(credsProvider).setDefaultCookieStore(cookieStore).build();
 	}
 
 	/**
